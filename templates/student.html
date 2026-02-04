@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Smart Attendance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header-left p {
+            opacity: 0.9;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 12px 20px;
+            border-radius: 30px;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .camera-container {
+            position: relative;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        video, canvas {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .btn {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .attendance-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .attendance-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .current-class-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .current-class-info h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .class-details {
+            color: #333;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .tab-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>👨‍🎓 Student Dashboard</h1>
+                <p>Welcome, {{ roll_number }}</p>
+            </div>
+            <div class="user-info">
+                <span>Student Portal</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('attendance')">Mark Attendance</button>
+            <button class="tab-btn" onclick="showTab('myattendance')">My Attendance</button>
+        </div>
+
+        <!-- Mark Attendance Tab -->
+        <div id="attendance" class="tab-content active">
+            <h2 style="margin-bottom: 25px; color: #333;">📸 Mark Your Attendance</h2>
+            <div id="attendance-message" class="message"></div>
+            
+            <div id="currentClass" style="display: none;" class="current-class-info">
+                <h3>📚 Current Class</h3>
+                <div class="class-details" id="classInfo"></div>
+            </div>
+
+            <div id="noClass" style="display: none;" class="warning-box">
+                <strong>⚠️ No Active Class</strong><br>
+                There is no class scheduled at this time. Please check your schedule or contact admin.
+            </div>
+            
+            <div class="attendance-info">
+                <h3>Instructions:</h3>
+                <ul style="padding-left: 20px; color: #666;">
+                    <li style="margin: 8px 0;">Attendance can only be marked during class hours</li>
+                    <li style="margin: 8px 0;">You have a time window after class ends to mark attendance</li>
+                    <li style="margin: 8px 0;">Click "Start Camera" to activate your webcam</li>
+                    <li style="margin: 8px 0;">Position your face clearly in the frame</li>
+                    <li style="margin: 8px 0;">Click "Mark Attendance" to capture and verify</li>
+                    <li style="margin: 8px 0;">You can only mark attendance once per subject per day</li>
+                </ul>
+            </div>
+
+            <div class="camera-container">
+                <video id="attendanceVideo" autoplay></video>
+                <canvas id="attendanceCanvas"></canvas>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="startCamera()">Start Camera</button>
+                <button class="btn btn-secondary" onclick="markAttendance()">Mark Attendance</button>
+            </div>
+        </div>
+
+        <!-- My Attendance Tab -->
+        <div id="myattendance" class="tab-content">
+            <h2 style="margin-bottom: 25px; color: #333;">📊 My Attendance Record</h2>
+            
+            <div class="stats" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalDays">0</div>
+                    <div class="stat-label">Total Days Present</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="thisMonth">0</div>
+                    <div class="stat-label">This Month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="attendanceRate">0%</div>
+                    <div class="stat-label">Attendance Rate</div>
+                </div>
+            </div>
+
+            <div id="attendanceTable"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentStream = null;
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            stopCamera();
+            
+            if (tabName === 'attendance') {
+                checkCurrentClass();
+            }
+            if (tabName === 'myattendance') {
+                loadMyAttendance();
+            }
+        }
+
+        async function checkCurrentClass() {
+            try {
+                const response = await fetch('/get_current_subject');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const subject = result.subject;
+                    document.getElementById('currentClass').style.display = 'block';
+                    document.getElementById('noClass').style.display = 'none';
+                    
+                    document.getElementById('classInfo').innerHTML = `
+                        <strong>${subject.name} (${subject.code})</strong><br>
+                        <strong>Class Time:</strong> ${subject.start_time} - ${subject.end_time}<br>
+                        <strong>Attendance Window:</strong> Class time + ${subject.attendance_window} minutes<br>
+                        <em style="color: #1976d2;">✓ You can mark attendance now</em>
+                    `;
+                } else {
+                    document.getElementById('currentClass').style.display = 'none';
+                    document.getElementById('noClass').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Error checking class:', err);
+            }
+        }
+
+        async function startCamera() {
+            try {
+                stopCamera();
+                const video = document.getElementById('attendanceVideo');
+                currentStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                video.srcObject = currentStream;
+                showMessage('Camera started successfully', 'success');
+            } catch (err) {
+                showMessage('Error accessing camera: ' + err.message, 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        async function markAttendance() {
+            const video = document.getElementById('attendanceVideo');
+            const canvas = document.getElementById('attendanceCanvas');
+            const context = canvas.getContext('2d');
+            
+            if (!video.videoWidth) {
+                showMessage('Please start the camera first', 'error');
+                return;
+            }
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            const imageData = canvas.toDataURL('image/jpeg');
+            const formData = new FormData();
+            formData.append('image', imageData);
+            
+            try {
+                const response = await fetch('/mark_attendance', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    setTimeout(() => {
+                        loadMyAttendance();
+                    }, 2000);
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (err) {
+                showMessage('Error: ' + err.message, 'error');
+            }
+        }
+
+        async function loadMyAttendance() {
+            try {
+                const response = await fetch('/get_my_attendance');
+                const records = await response.json();
+                
+                // Calculate stats
+                const totalDays = records.length;
+                const today = new Date();
+                const thisMonth = records.filter(r => {
+                    const recordDate = new Date(r.timestamp);
+                    return recordDate.getMonth() === today.getMonth() && 
+                           recordDate.getFullYear() === today.getFullYear();
+                }).length;
+                
+                // Calculate attendance rate (assuming 30 working days per month)
+                const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                const workingDays = Math.min(today.getDate(), daysInMonth);
+                const rate = workingDays > 0 ? Math.round((thisMonth / workingDays) * 100) : 0;
+                
+                document.getElementById('totalDays').textContent = totalDays;
+                document.getElementById('thisMonth').textContent = thisMonth;
+                document.getElementById('attendanceRate').textContent = rate + '%';
+                
+                // Display table
+                if (records.length === 0) {
+                    document.getElementById('attendanceTable').innerHTML = 
+                        '<div class="no-data">No attendance records found</div>';
+                    return;
+                }
+                
+                let tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                records.forEach(record => {
+                    const date = new Date(record.timestamp);
+                    const dateStr = date.toLocaleDateString();
+                    const timeStr = date.toLocaleTimeString();
+                    tableHtml += `
+                        <tr>
+                            <td>${dateStr}</td>
+                            <td>${timeStr}</td>
+                            <td>${record.subject_name} (${record.subject_code})</td>
+                            <td><span style="color: #28a745; font-weight: 600;">✓ ${record.status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += '</tbody></table>';
+                document.getElementById('attendanceTable').innerHTML = tableHtml;
+            } catch (err) {
+                document.getElementById('attendanceTable').innerHTML = 
+                    '<div class="no-data">Error loading attendance records</div>';
+            }
+        }
+
+        function showMessage(message, type) {
+            const msgEl = document.getElementById('attendance-message');
+            msgEl.textContent = message;
+            msgEl.className = `message ${type}`;
+            msgEl.style.display = 'block';
+            
+            setTimeout(() => {
+                msgEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }
+
+        // Check class on load
+        checkCurrentClass();
+        
+        // Refresh class status every minute
+        setInterval(checkCurrentClass, 60000);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', stopCamera);
+    </script>
+</body>
+</html>
